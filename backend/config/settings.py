@@ -48,7 +48,15 @@ if not SECRET_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env_bool("DJANGO_DEBUG", default=False)
 
-ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", default=["127.0.0.1", "localhost"])
+VERCEL_HOSTS = [
+    os.getenv(name, "").strip()
+    for name in ("VERCEL_URL", "VERCEL_PROJECT_PRODUCTION_URL")
+    if os.getenv(name, "").strip()
+]
+ALLOWED_HOSTS = [
+    *env_list("DJANGO_ALLOWED_HOSTS", default=["127.0.0.1", "localhost"]),
+    *VERCEL_HOSTS,
+]
 
 
 # Application definition
@@ -257,7 +265,10 @@ CORS_ALLOWED_ORIGINS = env_list("FRONTEND_ORIGIN")
 CORS_ALLOW_CREDENTIALS = True
 
 # CSRF trusts the same narrow frontend origin(s) for session-based posts.
-CSRF_TRUSTED_ORIGINS = env_list("FRONTEND_ORIGIN")
+CSRF_TRUSTED_ORIGINS = [
+    *env_list("FRONTEND_ORIGIN"),
+    *(f"https://{host}" for host in VERCEL_HOSTS),
+]
 
 
 # Django REST Framework
