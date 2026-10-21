@@ -45,14 +45,17 @@ if not SECRET_KEY:
         "and provide a value for DJANGO_SECRET_KEY."
     )
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env_bool("DJANGO_DEBUG", default=False)
-
+# Vercel provides deployment-specific and production hostnames at runtime.
 VERCEL_HOSTS = [
     os.getenv(name, "").strip()
     for name in ("VERCEL_URL", "VERCEL_PROJECT_PRODUCTION_URL")
     if os.getenv(name, "").strip()
 ]
+
+# Local .env files can be copied into deployment settings; never enable
+# Django's detailed error pages on a Vercel deployment.
+IS_VERCEL = bool(os.getenv("VERCEL")) or bool(VERCEL_HOSTS)
+DEBUG = env_bool("DJANGO_DEBUG", default=False) and not IS_VERCEL
 ALLOWED_HOSTS = [
     *env_list("DJANGO_ALLOWED_HOSTS", default=["127.0.0.1", "localhost"]),
     *VERCEL_HOSTS,
